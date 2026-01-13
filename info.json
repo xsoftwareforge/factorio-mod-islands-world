@@ -1,0 +1,12 @@
+{
+    "name": "islands_world",
+    "version": "2.0.0",
+    "title": "Islands World",
+    "author": "kapaer",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "2.0",
+    "dependencies": ["base >= 2.0.0"],
+    "description": "Explore in the new Islands-world, world of many small islands."
+}
+

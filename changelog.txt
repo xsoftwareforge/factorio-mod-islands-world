@@ -1,0 +1,61 @@
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 2026-01-13
+  Features:
+    - support Factorio version 2.0
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+Date: 2020-11-26
+  Features:
+    - support Factorio version 1.1
+
+---------------------------------------------------------------------------------------------------
+Version: 0.18.0
+Date: 2020-01-22
+  Features:
+    - support Factorio version 0.18.x
+
+---------------------------------------------------------------------------------------------------
+Version: 0.17.1
+Date: 2019-07-09
+  Features:
+    - change generate algorism of the start island.
+      size of start island is dependent on start-area size now.
+  Bugfixes:
+    - Fix failed to upgrade map from 0.16 to 0.17.
+      Terrain (grass, desert etc.) gap is Vanilla issue.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.17.0
+Date: 2019-03-01
+  Features:
+    - Support for Factorio ver. 0.17
+
+---------------------------------------------------------------------------------------------------
+Version: 0.16.3
+  Bugfixes:
+    - Fix error at multiplayer game when enabling this in the middle of the game
+
+---------------------------------------------------------------------------------------------------
+Version: 0.16.2
+  Bugfixes:
+    - Fix error when Angel's mod was installed
+
+---------------------------------------------------------------------------------------------------
+Version: 0.16.1
+  Features:
+    - Support for Factorio ver. 0.16
+  Info:
+    - It isn't compatible between 0.15 and 0.16. If you play by a map of 0.15, a gap forms in a new area.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+  Features:
+    - Support RSO (Resource Spawner Overhaul)
+    - Add shallow sea to starting island
+    - Add some warning message
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+  Features:
+    - Initial release
