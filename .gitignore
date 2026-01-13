@@ -1,0 +1,17 @@
+# Factorio mod artifacts
+*.zip
+*.log
+*.tmp
+
+# Temporary downloads and tooling
+_factorio_api/
+_factorio_api.zip
+_noise.lua
+_noise-expressions.lua
+
+# Editor/OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
