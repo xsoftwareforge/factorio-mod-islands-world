@@ -1,8 +1,25 @@
-local STARTING_RESOURCES = {
+local BASE_STARTING_RESOURCES = {
   {name = "iron-ore", radius = 9, amount = 1200},
   {name = "copper-ore", radius = 9, amount = 1200},
   {name = "stone", radius = 7, amount = 900},
   {name = "coal", radius = 8, amount = 1000},
+}
+
+local BOB_ORE_STARTING_RESOURCES = {
+  {name = "bob-tin-ore", radius = 6, amount = 700, setting = "bobmods-ores-enabletinore"},
+  {name = "bob-lead-ore", radius = 6, amount = 700, setting = "bobmods-ores-enableleadore"},
+  {name = "bob-quartz", radius = 6, amount = 700, setting = "bobmods-ores-enablequartz"},
+  {name = "bob-silver-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablesilverore"},
+  {name = "bob-zinc-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablezincore"},
+  {name = "bob-gold-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablegoldore"},
+  {name = "bob-bauxite-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablebauxite"},
+  {name = "bob-rutile-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablerutile"},
+  {name = "bob-tungsten-ore", radius = 6, amount = 700, setting = "bobmods-ores-enabletungstenore"},
+  {name = "bob-thorium-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablethoriumore"},
+  {name = "bob-nickel-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablenickelore"},
+  {name = "bob-cobalt-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablecobaltore"},
+  {name = "bob-sulfur", radius = 6, amount = 700, setting = "bobmods-ores-enablesulfur"},
+  {name = "bob-gem-ore", radius = 6, amount = 700, setting = "bobmods-ores-enablegemsore"},
 }
 
 local OFFSET_VECTORS = {
@@ -22,6 +39,66 @@ local NEIGHBOR_OFFSETS = {
   {x = 0, y = -1},
 }
 local FORCE_LAND_TILE = "grass-1"
+local ISLANDS_ELEVATION_NAMES = {
+  ["kap-islands-world2"] = true,
+  ["kap-islands-world"] = true,
+}
+local WATER_COLLISION_LAYER = nil
+local WATER_COLLISION_LAYER_CHECKED = false
+
+local function is_startup_setting_enabled(setting_name)
+  if not setting_name then
+    return true
+  end
+  local setting = settings.startup[setting_name]
+  if setting == nil then
+    return true
+  end
+  return setting.value == true
+end
+
+local function build_starting_resources()
+  local resources = {}
+  for _, resource in ipairs(BASE_STARTING_RESOURCES) do
+    resources[#resources + 1] = resource
+  end
+
+  if script.active_mods and script.active_mods["bobores"] then
+    for _, resource in ipairs(BOB_ORE_STARTING_RESOURCES) do
+      if is_startup_setting_enabled(resource.setting) then
+        resources[#resources + 1] = resource
+      end
+    end
+  end
+
+  return resources
+end
+
+local function get_entity_prototype(name)
+  local ok, prototype = pcall(function()
+    return game.get_entity_prototype(name)
+  end)
+  if ok and prototype then
+    return prototype
+  end
+
+  ok, prototype = pcall(function()
+    local prototypes = game.get_filtered_entity_prototypes{{filter = "name", name = name}}
+    return prototypes and prototypes[name] or nil
+  end)
+  if ok and prototype then
+    return prototype
+  end
+
+  ok, prototype = pcall(function()
+    return game.entity_prototypes and game.entity_prototypes[name] or nil
+  end)
+  if ok then
+    return prototype
+  end
+
+  return nil
+end
 
 local function set_island_tile(island_tiles, x, y)
   local column = island_tiles[x]
@@ -37,9 +114,39 @@ local function is_island_tile(island_tiles, x, y)
   return column and column[y] or false
 end
 
+local function resolve_water_collision_layer(tile)
+  if WATER_COLLISION_LAYER_CHECKED then
+    return WATER_COLLISION_LAYER
+  end
+
+  local candidates = {"water", "water-tile"}
+  for _, layer in ipairs(candidates) do
+    local ok = pcall(tile.collides_with, tile, layer)
+    if ok then
+      WATER_COLLISION_LAYER = layer
+      WATER_COLLISION_LAYER_CHECKED = true
+      return WATER_COLLISION_LAYER
+    end
+  end
+
+  WATER_COLLISION_LAYER = nil
+  WATER_COLLISION_LAYER_CHECKED = true
+  return nil
+end
+
 local function is_land_tile(surface, position)
   local tile = surface.get_tile(position)
-  return tile and not tile.collides_with("water-tile")
+  if not tile then
+    return false
+  end
+
+  local water_layer = resolve_water_collision_layer(tile)
+  if water_layer then
+    return not tile.collides_with(water_layer)
+  end
+
+  local name = tile.name or ""
+  return name:find("water", 1, true) == nil
 end
 
 local function find_land_near(surface, target, search_radius)
@@ -239,13 +346,33 @@ local function place_resource_patch(surface, resource, spawn_tile, starting_radi
   return false
 end
 
-local function ensure_starting_resources(surface)
+local function is_islands_world_surface(surface)
   if not (surface and surface.valid) then
+    return false
+  end
+
+  local ok, mgs = pcall(function()
+    return surface.map_gen_settings
+  end)
+  if not ok or not mgs then
+    return false
+  end
+
+  local names = mgs.property_expression_names
+  if not names then
+    return false
+  end
+
+  return ISLANDS_ELEVATION_NAMES[names.elevation] == true
+end
+
+local function ensure_starting_resources(surface)
+  if not is_islands_world_surface(surface) then
     return
   end
 
-  global.islands_world_starting_resources_done = global.islands_world_starting_resources_done or {}
-  if global.islands_world_starting_resources_done[surface.index] then
+  storage.islands_world_starting_resources_done = storage.islands_world_starting_resources_done or {}
+  if storage.islands_world_starting_resources_done[surface.index] then
     return
   end
 
@@ -261,8 +388,17 @@ local function ensure_starting_resources(surface)
   end
   local island_tiles, spawn_tile = build_spawn_island(surface, spawn, starting_radius)
 
+  local resources = build_starting_resources()
+  local active_resources = {}
+  for _, resource in ipairs(resources) do
+    local prototype = get_entity_prototype(resource.name)
+    if prototype and prototype.type == "resource" then
+      active_resources[#active_resources + 1] = resource
+    end
+  end
+
   local all_present = true
-  for index, resource in ipairs(STARTING_RESOURCES) do
+  for index, resource in ipairs(active_resources) do
     local present = resource_exists_on_island(surface, resource.name, island_tiles, spawn_tile, starting_radius)
     if not present then
       present = place_resource_patch(surface, resource, spawn_tile, starting_radius, index, island_tiles)
@@ -273,7 +409,7 @@ local function ensure_starting_resources(surface)
   end
 
   if all_present then
-    global.islands_world_starting_resources_done[surface.index] = true
+    storage.islands_world_starting_resources_done[surface.index] = true
   end
 end
 
@@ -299,7 +435,7 @@ script.on_configuration_changed(function(f)
   end
 
   if f.mod_changes["islands_world"] then
-    global.islands_world_starting_resources_done = {}
+    storage.islands_world_starting_resources_done = {}
     ensure_starting_resources(game.surfaces[1])
   end
 end)
@@ -314,7 +450,7 @@ script.on_init(function()
 end)
 
 script.on_event(defines.events.on_chunk_generated, function(event)
-  if not global.islands_world_starting_resources_done or not global.islands_world_starting_resources_done[event.surface.index] then
+  if not storage.islands_world_starting_resources_done or not storage.islands_world_starting_resources_done[event.surface.index] then
     ensure_starting_resources(event.surface)
   end
 end)
