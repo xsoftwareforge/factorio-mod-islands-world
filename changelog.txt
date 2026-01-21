@@ -1,5 +1,16 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.0.0
+Version: 2.1.1
+Date: 2026-01-21
+  - Fixed starting resource placement so it only runs on Islands world surfaces (skips non-islands).
+
+---------------------------------------------------------------------------------------------------
+Version: 2.1.0
+Date: 2026-01-16
+  - Added optional bobores support: spawn Bob's ores on the starting island when enabled.
+  - Fixed prototype lookup crash on init in Factorio 2.0.
+
+---------------------------------------------------------------------------------------------------
+Version: 2.0.1
 Date: 2026-01-13
-  Features:
-    - support Factorio version 2.0
+  - Fixed save load crash by switching persistent state to storage for Factorio 2.0.
+  - Fixed water collision check for Factorio 2.0 (water layer name changes).

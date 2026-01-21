@@ -1,12 +1,12 @@
 {
-    "name": "islands_world",
-    "version": "2.0.0",
-    "title": "Islands World",
-    "author": "kapaer",
-    "contact": "",
-    "homepage": "",
+    "name": "islands_world_reworked",
+    "version": "2.1.1",
+    "title": "Islands World Reworked",
+    "author": "Xearox",
+    "contact": "https://discord.gg/5RNsyN6",
+    "homepage": "https://discord.gg/5RNsyN6",
     "factorio_version": "2.0",
-    "dependencies": ["base >= 2.0.0"],
+    "dependencies": ["base >= 2.0.0", "? bobores"],
     "description": "Explore in the new Islands-world, world of many small islands."
 }
 
